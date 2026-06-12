@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ entry.title }} · 我们的恋爱日记{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <!-- 面包屑 -->
+  <div class="flex items-center gap-2 text-sm text-gray-400 mb-5">
+    <a href="{{ url_for('diary_list') }}" class="hover:text-rose-400 transition">📖 日记</a>
+    <span>›</span>
+    <span class="text-gray-600 line-clamp-1">{{ entry.title }}</span>
+  </div>
+
+  <!-- 主卡片 -->
+  <div class="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden">
+    <!-- 封面图 -->
+    {% if entry.cover_image_url %}
+    <div class="h-72 overflow-hidden">
+      <img src="{{ entry.cover_image_url }}" alt="封面"
+           class="w-full h-full object-cover" />
+    </div>
+    {% endif %}
+
+    <div class="p-8">
+      <!-- 标题 & 元信息 -->
+      <div class="mb-6">
+        <div class="flex items-center gap-2 text-sm text-pink-400 mb-2">
+          <span>{{ entry.date.strftime('%Y年%m月%d日') }}</span>
+          <span>·</span>
+          <span>{{ {'happy':'😊 开心','sad':'😢 难过','excited':'🤩 兴奋','romantic':'🥰 甜蜜','normal':'🙂 平静'}[entry.mood] or entry.mood }}</span>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-800">{{ entry.title }}</h1>
+      </div>
+
+      <!-- 正文 -->
+      <div class="text-gray-600 leading-8 text-sm whitespace-pre-wrap mb-8">{{ entry.content }}</div>
+
+      <!-- 操作按钮 -->
+      <div class="flex items-center gap-3 pt-4 border-t border-pink-50">
+        <a href="{{ url_for('diary_edit', entry_id=entry.id) }}"
+           class="px-5 py-2 bg-rose-50 text-rose-500 rounded-full hover:bg-rose-100 transition text-sm font-medium">
+          ✏️ 编辑
+        </a>
+        <form method="POST" action="{{ url_for('diary_delete', entry_id=entry.id) }}"
+              onsubmit="return confirm('确定要删除这篇日记吗？删除后无法恢复 😢')">
+          <button type="submit"
+                  class="px-5 py-2 bg-gray-50 text-gray-400 rounded-full hover:bg-red-50 hover:text-red-400 transition text-sm font-medium">
+            🗑️ 删除
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 照片区域 -->
+  <div class="mt-8 bg-white rounded-2xl shadow-sm border border-pink-100 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-bold text-gray-700">📸 相关照片（{{ entry.photos|length }} 张）</h2>
+    </div>
+
+    <!-- 上传新照片 -->
+    <form method="POST" action="{{ url_for('photo_upload') }}" enctype="multipart/form-data"
+          class="mb-5 p-4 rounded-xl border-2 border-dashed border-pink-200 bg-pink-50/30">
+      <input type="hidden" name="diary_id" value="{{ entry.id }}" />
+      <input type="file" name="photos" accept="image/*" multiple required
+             class="w-full text-sm text-gray-500 mb-3 file:mr-4 file:py-1.5 file:px-4
+                    file:rounded-full file:border-0 file:bg-rose-100 file:text-rose-500
+                    file:font-medium hover:file:bg-rose-200 transition cursor-pointer" />
+      <input type="text" name="caption" placeholder="照片说明（可选）"
+             class="w-full px-3 py-2 rounded-lg border border-pink-200 bg-white text-sm
+                    text-gray-600 placeholder-pink-300 focus:outline-none focus:ring-2 focus:ring-rose-200 mb-3" />
+      <button type="submit"
+              class="px-5 py-2 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition text-sm font-medium">
+        上传照片
+      </button>
+    </form>
+
+    <!-- 照片网格 -->
+    {% if entry.photos %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {% for photo in entry.photos %}
+      <div class="relative group rounded-xl overflow-hidden aspect-square border border-pink-100">
+        <img src="{{ photo.url }}" alt="{{ photo.caption }}"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300
+                    cursor-pointer"
+             onclick="openLightbox('{{ photo.url }}', '{{ photo.caption }}')" />
+        {% if photo.caption %}
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent
+                    px-2 py-1.5 text-white text-xs opacity-0 group-hover:opacity-100 transition">
+          {{ photo.caption }}
+        </div>
+        {% endif %}
+        <!-- 删除按钮 -->
+        <form method="POST" action="{{ url_for('photo_delete', photo_id=photo.id) }}"
+              class="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition"
+              onsubmit="return confirm('删除这张照片？')">
+          <button type="submit"
+                  class="w-7 h-7 bg-red-500/80 text-white rounded-full text-xs hover:bg-red-600 transition flex items-center justify-center">
+            ✕
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-pink-300 text-sm py-4">还没有照片，快来上传吧 📷</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Lightbox 模态框 -->
+<div id="lightbox"
+     class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4"
+     onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt=""
+       class="max-w-full max-h-full rounded-2xl shadow-2xl object-contain" />
+  <p id="lightbox-caption"
+     class="absolute bottom-8 left-1/2 -translate-x-1/2 text-white text-sm bg-black/40 px-4 py-1.5 rounded-full"></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openLightbox(url, caption) {
+  const lb = document.getElementById('lightbox');
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox-caption').textContent = caption;
+  lb.classList.remove('hidden');
+  lb.classList.add('flex');
+}
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  lb.classList.add('hidden');
+  lb.classList.remove('flex');
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ entry.title if entry else '写新日记' }} · 我们的恋爱日记{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <!-- 面包屑 -->
+  <div class="flex items-center gap-2 text-sm text-gray-400 mb-5">
+    <a href="{{ url_for('diary_list') }}" class="hover:text-rose-400 transition">📖 日记</a>
+    <span>›</span>
+    <span class="text-gray-600">{{ '编辑日记' if entry else '写新日记' }}</span>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-pink-100 p-8">
+    <h1 class="text-xl font-bold text-rose-500 mb-6">
+      {{ '💫 编辑日记' if entry else '✍️ 写新日记' }}
+    </h1>
+
+    <form method="POST"
+          enctype="multipart/form-data"
+          action="{{ url_for('diary_edit', entry_id=entry.id) if entry else url_for('diary_new') }}">
+
+      <!-- 标题 -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-gray-600 mb-1.5">标题</label>
+        <input type="text" name="title" required maxlength="200"
+               value="{{ entry.title if entry else '' }}"
+               placeholder="给今天的故事起个名字..."
+               class="w-full px-4 py-2.5 rounded-xl border border-pink-200 bg-pink-50/30
+                      text-gray-700 placeholder-pink-300 focus:outline-none focus:ring-2
+                      focus:ring-rose-300 transition text-sm" />
+      </div>
+
+      <!-- 日期 + 心情 -->
+      <div class="grid grid-cols-2 gap-4 mb-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1.5">日期</label>
+          <input type="date" name="date"
+                 value="{{ entry.date.strftime('%Y-%m-%d') if entry else '' }}"
+                 class="w-full px-4 py-2.5 rounded-xl border border-pink-200 bg-pink-50/30
+                        text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-300 transition text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1.5">今天的心情</label>
+          <select name="mood"
+                  class="w-full px-4 py-2.5 rounded-xl border border-pink-200 bg-pink-50/30
+                         text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-300 transition text-sm">
+            <option value="happy"    {% if entry and entry.mood=='happy'    %}selected{% endif %}>😊 开心</option>
+            <option value="romantic" {% if entry and entry.mood=='romantic' %}selected{% endif %}>🥰 甜蜜</option>
+            <option value="excited"  {% if entry and entry.mood=='excited'  %}selected{% endif %}>🤩 兴奋</option>
+            <option value="normal"   {% if entry and entry.mood=='normal'   %}selected{% endif %}>🙂 平静</option>
+            <option value="sad"      {% if entry and entry.mood=='sad'      %}selected{% endif %}>😢 难过</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 正文 -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-gray-600 mb-1.5">日记内容</label>
+        <textarea name="content" required rows="10"
+                  placeholder="写下今天和他/她的故事..."
+                  class="w-full px-4 py-3 rounded-xl border border-pink-200 bg-pink-50/30
+                         text-gray-700 placeholder-pink-300 focus:outline-none focus:ring-2
+                         focus:ring-rose-300 transition text-sm leading-relaxed resize-none">{{ entry.content if entry else '' }}</textarea>
+      </div>
+
+      <!-- 封面图 -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-600 mb-1.5">封面图片（可选）</label>
+        {% if entry and entry.cover_image_url %}
+        <div class="mb-2">
+          <img src="{{ entry.cover_image_url }}" alt="当前封面"
+               class="h-32 object-cover rounded-xl border border-pink-100" />
+          <p class="text-xs text-pink-400 mt-1">上传新图片将替换当前封面</p>
+        </div>
+        {% endif %}
+        <input type="file" name="cover_image" accept="image/*"
+               class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
+                      file:rounded-full file:border-0 file:bg-rose-50 file:text-rose-500
+                      file:font-medium hover:file:bg-rose-100 transition cursor-pointer" />
+      </div>
+
+      <!-- 按钮 -->
+      <div class="flex gap-3">
+        <button type="submit"
+                class="flex-1 py-3 bg-rose-500 text-white font-semibold rounded-xl
+                       hover:bg-rose-600 transition shadow-sm">
+          {{ '保存修改 ✨' if entry else '发布日记 💕' }}
+        </button>
+        <a href="{{ url_for('diary_detail', entry_id=entry.id) if entry else url_for('diary_list') }}"
+           class="px-6 py-3 rounded-xl border border-pink-200 text-gray-500 hover:bg-pink-50 transition text-sm font-medium">
+          取消
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

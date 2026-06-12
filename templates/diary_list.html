@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}日记列表 · 我们的恋爱日记{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-rose-500">📖 我们的故事</h1>
+    <p class="text-sm text-pink-400 mt-0.5">共 {{ entries|length }} 篇日记</p>
+  </div>
+  <a href="{{ url_for('diary_new') }}"
+     class="flex items-center gap-1.5 px-5 py-2.5 bg-rose-500 text-white rounded-full
+            shadow-md hover:bg-rose-600 hover:shadow-lg transition font-medium">
+    ＋ 写新日记
+  </a>
+</div>
+
+{% if not entries %}
+<div class="text-center py-24 text-pink-300">
+  <div class="text-7xl mb-4">📝</div>
+  <p class="text-lg font-medium">还没有日记</p>
+  <p class="text-sm mt-1">快来记录第一个故事吧 💕</p>
+  <a href="{{ url_for('diary_new') }}"
+     class="inline-block mt-5 px-6 py-2.5 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition">
+    开始写日记
+  </a>
+</div>
+{% else %}
+
+<!-- 日记卡片网格 -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+  {% for entry in entries %}
+  <a href="{{ url_for('diary_detail', entry_id=entry.id) }}"
+     class="group bg-white rounded-2xl shadow-sm hover:shadow-md border border-pink-50
+            hover:border-pink-200 transition-all duration-200 overflow-hidden block">
+
+    <!-- 封面图 -->
+    {% if entry.cover_image_url %}
+    <div class="h-44 overflow-hidden">
+      <img src="{{ entry.cover_image_url }}" alt="封面"
+           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+    </div>
+    {% else %}
+    <div class="h-44 flex items-center justify-center text-5xl"
+         style="background: linear-gradient(135deg, #fff0f3, #fce7f3);">
+      {{ {'happy':'😊','sad':'😢','excited':'🤩','romantic':'🥰','normal':'🙂'}[entry.mood] or '💕' }}
+    </div>
+    {% endif %}
+
+    <!-- 内容 -->
+    <div class="p-4">
+      <div class="flex items-start justify-between gap-2 mb-1">
+        <h2 class="font-bold text-gray-800 text-base leading-snug line-clamp-1 group-hover:text-rose-500 transition">
+          {{ entry.title }}
+        </h2>
+        <span class="shrink-0 text-lg">
+          {{ {'happy':'😊','sad':'😢','excited':'🤩','romantic':'🥰','normal':'🙂'}[entry.mood] or '💕' }}
+        </span>
+      </div>
+      <p class="text-xs text-gray-400 mb-2">{{ entry.date.strftime('%Y年%m月%d日') }}</p>
+      <p class="text-sm text-gray-500 line-clamp-2 leading-relaxed">{{ entry.content }}</p>
+      {% if entry.photos %}
+      <p class="text-xs text-pink-400 mt-2">📸 {{ entry.photos|length }} 张照片</p>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% endif %}
+{% endblock %}

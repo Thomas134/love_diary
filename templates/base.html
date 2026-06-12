@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}我们的恋爱日记 💕{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            rose: { DEFAULT: '#f43f5e', light: '#fff1f2', mid: '#fda4af' },
+            blush: '#fbcfe8',
+          },
+          fontFamily: {
+            sans: ['"PingFang SC"', '"Microsoft YaHei"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #fff1f2; }
+    ::-webkit-scrollbar-thumb { background: #fda4af; border-radius: 3px; }
+
+    /* 动画 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn .4s ease both; }
+
+    /* 心形装饰 */
+    .heart-bg {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ctext y='45' font-size='30' fill='%23fda4af' opacity='0.15'%3E%E2%99%A5%3C/text%3E%3C/svg%3E");
+    }
+  </style>
+</head>
+<body class="bg-rose-50 min-h-screen heart-bg" style="background-color:#fff8f8;">
+
+<!-- ── Navbar ─────────────────────────────────────── -->
+{% if session.get('logged_in') %}
+<nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-pink-100">
+  <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+    <a href="{{ url_for('diary_list') }}"
+       class="flex items-center gap-2 text-rose-500 font-bold text-lg tracking-wide hover:text-rose-600 transition">
+      <span class="text-2xl">💕</span> 我们的日记
+    </a>
+    <div class="flex items-center gap-1 text-sm">
+      <a href="{{ url_for('diary_list') }}"
+         class="px-3 py-1.5 rounded-full hover:bg-pink-50 text-gray-600 hover:text-rose-500 transition
+                {% if request.endpoint == 'diary_list' %}bg-pink-50 text-rose-500 font-medium{% endif %}">
+        📖 日记
+      </a>
+      <a href="{{ url_for('photo_wall') }}"
+         class="px-3 py-1.5 rounded-full hover:bg-pink-50 text-gray-600 hover:text-rose-500 transition
+                {% if request.endpoint == 'photo_wall' %}bg-pink-50 text-rose-500 font-medium{% endif %}">
+        📸 照片墙
+      </a>
+      <a href="{{ url_for('diary_new') }}"
+         class="ml-2 px-4 py-1.5 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition font-medium shadow-sm">
+        ＋ 写日记
+      </a>
+      <a href="{{ url_for('logout') }}"
+         class="ml-1 px-3 py-1.5 rounded-full text-gray-400 hover:text-rose-400 hover:bg-pink-50 transition text-xs">
+        退出
+      </a>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<!-- ── Flash 消息 ──────────────────────────────────── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="max-w-5xl mx-auto px-4 pt-4 space-y-2">
+    {% for category, message in messages %}
+    <div class="fade-in flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm
+      {% if category == 'success' %}bg-green-50 text-green-700 border border-green-200
+      {% elif category == 'error' %}bg-red-50 text-red-700 border border-red-200
+      {% elif category == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200
+      {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+      {% if category == 'success' %}✅{% elif category == 'error' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<!-- ── 主内容 ────────────────────────────────────────── -->
+<main class="max-w-5xl mx-auto px-4 py-6 fade-in">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ── Footer ───────────────────────────────────────── -->
+<footer class="text-center text-xs text-pink-300 py-6">
+  💗 用心记录每一个美好瞬间 💗
+</footer>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>
